@@ -2,28 +2,25 @@ import express from 'express';
 import cors from 'cors';
 import { clerkMiddleware } from '@clerk/express';
 
+import transactionRoutes from './routes/transactionRoutes.js';
+import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+
 const app = express();
 
 // ==========================================
 // Global Middleware
 // ==========================================
-
-// Enable CORS for frontend requests
 app.use(
     cors({
         origin: process.env.CLIENT_URL || 'http://localhost:5173',
         credentials: true,
     })
 );
-
-// Parse incoming JSON request bodies
 app.use(express.json());
-
-// Clerk authentication middleware (attaches auth info to req.auth)
 app.use(clerkMiddleware());
 
 // ==========================================
-// Base / Health Check Route
+// API Routes
 // ==========================================
 app.get('/api/health', (req, res) => {
     res.status(200).json({
@@ -32,5 +29,14 @@ app.get('/api/health', (req, res) => {
         timestamp: new Date().toISOString(),
     });
 });
+
+// Transaction API Endpoints
+app.use('/api/transactions', transactionRoutes);
+
+// ==========================================
+// Error Handling Middleware
+// ==========================================
+app.use(notFound);
+app.use(errorHandler);
 
 export default app;
