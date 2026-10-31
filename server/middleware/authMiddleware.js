@@ -6,8 +6,17 @@ import { getAuth } from '@clerk/express';
  */
 export const protect = (req, res, next) => {
     // Retrieve authentication state attached by clerkMiddleware
-    const auth = req.auth || (getAuth ? getAuth(req) : null);
-    const userId = auth?.userId;
+    let authObj = null;
+
+    if (typeof req.auth === 'function') {
+        authObj = req.auth();
+    } else if (req.auth) {
+        authObj = req.auth;
+    } else if (typeof getAuth === 'function') {
+        authObj = getAuth(req);
+    }
+
+    const userId = authObj?.userId;
 
     if (!userId) {
         return res.status(401).json({
